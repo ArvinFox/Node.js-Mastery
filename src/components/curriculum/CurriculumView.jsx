@@ -19,7 +19,8 @@ import {
   Grid,
   Sparkles,
   Zap,
-  Info
+  Info,
+  Award
 } from 'lucide-react';
 
 export const CurriculumView = ({ onCompleteLesson }) => {
@@ -31,6 +32,10 @@ export const CurriculumView = ({ onCompleteLesson }) => {
   const currentLesson = LESSONS[currentLessonIndex] || LESSONS[0];
   const currentTier = TIERS.find((t) => t.id === currentLesson.tier) || TIERS[0];
   const isLessonComplete = completedLessons.includes(currentLesson.id);
+
+  const tierLessons = LESSONS.filter((l) => l.tier === currentTier.id);
+  const tierCompletedCount = tierLessons.filter((l) => completedLessons.includes(l.id)).length;
+  const isTierBadgeUnlocked = tierCompletedCount === tierLessons.length;
 
   const handleLessonChange = (index) => {
     if (index >= 0 && index < LESSONS.length) {
@@ -112,12 +117,19 @@ export const CurriculumView = ({ onCompleteLesson }) => {
       {/* 1. Guided Journey Hero Banner */}
       <div className="guided-journey-banner">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
             <span className="journey-badge-pill" style={{ borderColor: currentTier.color, color: currentTier.color }}>
               {currentTier.name}
             </span>
             <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
               Mission {currentLessonIndex + 1} of {LESSONS.length}
+            </span>
+            <span
+              className={`cyber-badge ${isTierBadgeUnlocked ? 'badge-green' : 'badge-cyan'}`}
+              style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              title={`Tier Badge: ${currentTier.badgeTitle} (${tierCompletedCount}/${tierLessons.length} missions completed)`}
+            >
+              <Award size={11} /> {currentTier.badgeTitle}: {isTierBadgeUnlocked ? 'UNLOCKED' : `${tierCompletedCount}/${tierLessons.length}`}
             </span>
             {isLessonComplete && (
               <span className="cyber-badge badge-green" style={{ fontSize: '10px' }}>

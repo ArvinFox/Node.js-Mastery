@@ -6,7 +6,7 @@ import { MarkdownView } from '../common/MarkdownView';
 import confetti from 'canvas-confetti';
 import { HelpCircle, CheckCircle, XCircle, ArrowRight, Play, RotateCcw } from 'lucide-react';
 
-export const EventLoopQuizView = () => {
+export const EventLoopQuizView = ({ onQuizSolved }) => {
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -31,6 +31,7 @@ export const EventLoopQuizView = () => {
       soundFx.playSuccess();
       const updated = storage.markQuizSolved(quiz.id);
       setSolvedList(updated);
+      if (onQuizSolved) onQuizSolved(quiz.id);
       confetti({
         particleCount: 40,
         spread: 50,

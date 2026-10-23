@@ -8,10 +8,13 @@ import { TheoremsView } from './components/theorems/TheoremsView';
 import { EventLoopQuizView } from './components/quizzes/EventLoopQuizView';
 
 import { LESSONS } from './data/curriculum';
+import { BADGES, evaluateBadges } from './data/badges';
 import { storage } from './services/storage';
 import { soundFx } from './services/soundFx';
 
 import { StorageConsentModal } from './components/common/StorageConsentModal';
+import { BadgesModal } from './components/common/BadgesModal';
+import { BadgeToast } from './components/common/BadgeToast';
 
 import {
   BookOpen,
@@ -27,11 +30,22 @@ export function App() {
   const [completedCount, setCompletedCount] = useState(() => storage.getCompletedLessons().length);
   const [badgesCount, setBadgesCount] = useState(() => storage.getUnlockedBadges().length);
   const [showConsentModal, setShowConsentModal] = useState(() => !storage.hasConsentPrompted());
+  const [showBadgesModal, setShowBadgesModal] = useState(false);
+  const [newBadgeToast, setNewBadgeToast] = useState(null);
 
   // Sync theme and CRT with body class
   useEffect(() => {
     document.body.className = `${isCrtEnabled ? 'crt-enabled' : ''} theme-${theme}`;
   }, [theme, isCrtEnabled]);
+
+  // Initial badge check & sync on startup
+  useEffect(() => {
+    const { newlyUnlocked, unlockedIds } = evaluateBadges();
+    setBadgesCount(unlockedIds.length);
+    if (newlyUnlocked.length > 0) {
+      setNewBadgeToast(newlyUnlocked[0]);
+    }
+  }, []);
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
@@ -57,14 +71,18 @@ export function App() {
   const handleLessonCompleted = () => {
     const completed = storage.getCompletedLessons().length;
     setCompletedCount(completed);
-    setBadgesCount(storage.getUnlockedBadges().length);
+    const { newlyUnlocked, unlockedIds } = evaluateBadges();
+    setBadgesCount(unlockedIds.length);
+    if (newlyUnlocked.length > 0) {
+      setNewBadgeToast(newlyUnlocked[0]);
+    }
   };
 
   const tabs = [
-    { id: 'missions', label: '🚀 1. Guided Missions', icon: BookOpen },
-    { id: 'labs', label: '🔬 2. Visualizer Labs', icon: FlaskConical },
-    { id: 'theorems', label: '📜 3. Theorems & Laws', icon: FileCode2 },
-    { id: 'quiz', label: '🧩 4. Output Quizzes', icon: HelpCircle }
+    { id: 'missions', label: '1. Guided Missions', icon: BookOpen },
+    { id: 'labs', label: '2. Visualizer Labs', icon: FlaskConical },
+    { id: 'theorems', label: '3. Theorems & Laws', icon: FileCode2 },
+    { id: 'quiz', label: '4. Output Quizzes', icon: HelpCircle }
   ];
 
   return (
@@ -81,6 +99,7 @@ export function App() {
         completedCount={completedCount}
         totalCount={LESSONS.length}
         badgesCount={badgesCount}
+        onOpenBadges={() => setShowBadgesModal(true)}
       />
 
       {/* Streamlined 4-Mode Navigation Tab Strip */}
@@ -108,7 +127,9 @@ export function App() {
         )}
         {activeTab === 'labs' && <LabsContainer />}
         {activeTab === 'theorems' && <TheoremsView />}
-        {activeTab === 'quiz' && <EventLoopQuizView />}
+        {activeTab === 'quiz' && (
+          <EventLoopQuizView onQuizSolved={handleLessonCompleted} />
+        )}
       </main>
 
       {/* Platform Footer & Trademark Attribution */}
@@ -134,6 +155,7 @@ export function App() {
         onNavigate={handleTabChange}
         onThemeChange={handleThemeChange}
         onCrtToggle={handleCrtToggle}
+        onOpenBadges={() => setShowBadgesModal(true)}
       />
 
       {/* First-Boot Privacy & Local Storage Initialization Prompt */}
@@ -142,6 +164,26 @@ export function App() {
           onConsentComplete={({ enableCrt }) => {
             setIsCrtEnabled(enableCrt);
             setShowConsentModal(false);
+          }}
+        />
+      )}
+
+      {/* Cyber-Badges & Achievements Matrix Modal */}
+      {showBadgesModal && (
+        <BadgesModal
+          isOpen={showBadgesModal}
+          onClose={() => setShowBadgesModal(false)}
+        />
+      )}
+
+      {/* Live Badge Unlock Celebration Toast */}
+      {newBadgeToast && (
+        <BadgeToast
+          badge={newBadgeToast}
+          onDismiss={() => setNewBadgeToast(null)}
+          onViewBadges={() => {
+            setNewBadgeToast(null);
+            setShowBadgesModal(true);
           }}
         />
       )}

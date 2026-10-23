@@ -34,7 +34,8 @@ export const TerminalHeader = ({
   onCrtToggle,
   completedCount,
   totalCount,
-  badgesCount
+  badgesCount,
+  onOpenBadges
 }) => {
   const [isMuted, setIsMuted] = useState(soundFx.isMuted());
 
@@ -70,9 +71,25 @@ export const TerminalHeader = ({
           <span className="cyber-badge badge-green" title="Completed Missions">
             <CheckCircle2 size={12} /> {completedCount} / {totalCount} MISSIONS
           </span>
-          <span className="cyber-badge badge-cyan" title="Unlocked Cyber-Badges">
+          <button
+            onClick={() => {
+              soundFx.playClick();
+              if (onOpenBadges) onOpenBadges();
+            }}
+            className="cyber-badge badge-cyan interactive-badge-btn"
+            style={{
+              cursor: 'pointer',
+              background: 'rgba(0, 240, 255, 0.1)',
+              transition: 'all 0.2s ease',
+              border: '1px solid var(--neon-cyan)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title="Click to view all Cyber-Badges & Achievements"
+          >
             <Award size={12} /> {badgesCount} BADGES
-          </span>
+          </button>
         </div>
 
         {/* Theme Picker */}

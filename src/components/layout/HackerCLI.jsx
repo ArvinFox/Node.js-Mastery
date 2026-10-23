@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { soundFx } from '../../services/soundFx';
+import { storage } from '../../services/storage';
+import { BADGES } from '../../data/badges';
 import { Terminal, Send, X, Minimize2, Sparkles, ChevronUp, Command } from 'lucide-react';
 
-export const HackerCLI = ({ onNavigate, onThemeChange, onCrtToggle }) => {
+export const HackerCLI = ({ onNavigate, onThemeChange, onCrtToggle, onOpenBadges }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputVal, setInputVal] = useState('');
   const [history, setHistory] = useState([
@@ -52,10 +54,23 @@ export const HackerCLI = ({ onNavigate, onThemeChange, onCrtToggle }) => {
       case 'help':
         newLogs.push({
           type: 'system',
-          text: 'AVAILABLE CYBER COMMANDS:\n • goto <missions|labs|theorems|quiz> — Switch main view\n • theme <matrix|cyberpunk|amber|obsidian> — Change theme\n • crt — Toggle retro scanlines\n • sound — Toggle synthesized audio\n • clear — Clear terminal screen\n • help — Show this manual'
+          text: 'AVAILABLE CYBER COMMANDS:\n • badges — Inspect unlocked cyber-badges & achievements\n • goto <missions|labs|theorems|quiz> — Switch main view\n • theme <matrix|cyberpunk|amber|obsidian|light> — Change theme\n • crt — Toggle retro scanlines\n • sound — Toggle synthesized audio\n • clear — Clear terminal screen\n • help — Show this manual'
         });
         soundFx.playBeep(600, 0.08);
         break;
+
+      case 'badges':
+      case 'achievements': {
+        const unlocked = storage.getUnlockedBadges();
+        newLogs.push({
+          type: 'system',
+          text: `CYBER-BADGES MATRIX STATUS (${unlocked.length}/${BADGES.length} Unlocked):\n` +
+            BADGES.map((b) => ` ${unlocked.includes(b.id) ? '✓ [UNLOCKED]' : '🔒 [LOCKED]  '} ${b.title} — ${b.requirement}`).join('\n')
+        });
+        soundFx.playSuccess();
+        if (onOpenBadges) onOpenBadges();
+        break;
+      }
 
       case 'goto':
         if (['missions', 'labs', 'curriculum', 'sim-loop', 'sim-stream', 'sim-worker', 'sim-gc', 'theorems', 'quiz'].includes(arg)) {
@@ -115,6 +130,7 @@ export const HackerCLI = ({ onNavigate, onThemeChange, onCrtToggle }) => {
 
   const quickChips = [
     { label: 'help', cmd: 'help' },
+    { label: 'badges', cmd: 'badges' },
     { label: 'goto missions', cmd: 'goto missions' },
     { label: 'goto labs', cmd: 'goto labs' },
     { label: 'goto theorems', cmd: 'goto theorems' },
