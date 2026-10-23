@@ -132,7 +132,7 @@ export const WorkerThreadsVisualizer = () => {
       </div>
 
       {/* Grid Comparison */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
         {/* Main Thread Architecture Panel */}
         <div
           className="cyber-card"

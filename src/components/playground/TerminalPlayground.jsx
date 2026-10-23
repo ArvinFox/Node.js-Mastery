@@ -446,7 +446,7 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
         </div>
 
         {/* Code Editor and Output Split */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+        <div className="code-playground-split" style={{ display: 'grid' }}>
           {/* Editor Area */}
           <div style={{ borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '6px 12px', background: 'rgba(0,0,0,0.5)', fontSize: '11px', color: 'var(--text-dim)', borderBottom: '1px solid var(--code-border)' }}>

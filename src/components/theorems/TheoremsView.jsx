@@ -24,7 +24,7 @@ export const TheoremsView = () => {
   const IconComponent = ICON_MAP[selectedTheorem.icon] || BookOpen;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 320px) 1fr', gap: '20px' }}>
+    <div className="theorems-grid" style={{ display: 'grid', gap: '20px' }}>
       {/* Sidebar List of Theorems */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div style={{ fontSize: '11px', color: 'var(--text-dim)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>

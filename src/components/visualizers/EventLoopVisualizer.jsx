@@ -249,7 +249,7 @@ export const EventLoopVisualizer = () => {
       </div>
 
       {/* Main Visual Dashboard Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
         {/* Phase Wheel Column */}
         <div className="cyber-card">
           <div className="cyber-card-header">

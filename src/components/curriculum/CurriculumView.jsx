@@ -272,7 +272,7 @@ export const CurriculumView = ({ onCompleteLesson }) => {
         </div>
 
         {/* Tab Body Contents */}
-        <div style={{ padding: '24px' }}>
+        <div className="curriculum-tab-body" style={{ padding: '24px' }}>
           {/* TAB 1: Mission Blueprint & Theory */}
           {activeTab === 'guide' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

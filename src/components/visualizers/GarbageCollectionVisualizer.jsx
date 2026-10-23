@@ -133,7 +133,7 @@ export const GarbageCollectionVisualizer = () => {
       </div>
 
       {/* Heap Memory Spaces Visual Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
         {/* Young Generation (New Space) */}
         <div className="cyber-card" style={{ borderColor: 'var(--neon-cyan)' }}>
           <div className="cyber-card-header">

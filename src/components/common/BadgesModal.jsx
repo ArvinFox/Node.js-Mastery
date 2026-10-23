@@ -82,18 +82,18 @@ export const BadgesModal = ({ isOpen, onClose }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px'
+        padding: '12px'
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="storage-modal-card"
+        className="storage-modal-card badges-modal-card"
         style={{
-          maxWidth: '850px',
+          maxWidth: '880px',
           width: '100%',
-          maxHeight: '90vh',
+          maxHeight: '92vh',
           display: 'flex',
           flexDirection: 'column',
           background: '#04090d',
@@ -105,16 +105,18 @@ export const BadgesModal = ({ isOpen, onClose }) => {
       >
         {/* Header */}
         <div
+          className="badges-modal-header"
           style={{
-            padding: '16px 22px',
+            padding: '14px 20px',
             background: 'linear-gradient(90deg, rgba(0, 240, 255, 0.12), rgba(0, 0, 0, 0.6))',
             borderBottom: '1px solid var(--border-color)',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            gap: '12px'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
             <div
               style={{
                 width: '36px',
@@ -125,33 +127,35 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--neon-cyan)'
+                color: 'var(--neon-cyan)',
+                flexShrink: 0
               }}
             >
               <Award size={20} />
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div
                 style={{
-                  fontSize: '16px',
+                  fontSize: 'clamp(13px, 3.5vw, 16px)',
                   fontWeight: 700,
                   fontFamily: 'var(--font-display)',
                   letterSpacing: '0.8px',
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
                   gap: '8px'
                 }}
               >
-                CYBER-BADGES & ACHIEVEMENTS
+                <span>CYBER-BADGES & ACHIEVEMENTS</span>
                 <span
                   className="cyber-badge badge-cyan"
-                  style={{ fontSize: '10px', padding: '2px 8px' }}
+                  style={{ fontSize: '10px', padding: '2px 8px', whiteSpace: 'nowrap' }}
                 >
                   {unlockedCount} / {totalBadges} UNLOCKED
                 </span>
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '2px' }}>
+              <div style={{ fontSize: '11.5px', color: 'var(--text-dim)', marginTop: '2px' }}>
                 Earn cryptographic proof-of-mastery badges by completing mission code trials and architect labs.
               </div>
             </div>
@@ -172,7 +176,8 @@ export const BadgesModal = ({ isOpen, onClose }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              flexShrink: 0
             }}
             title="Close (Esc)"
           >
@@ -183,12 +188,13 @@ export const BadgesModal = ({ isOpen, onClose }) => {
         {/* Progress Overview Bar */}
         <div
           style={{
-            padding: '14px 22px',
+            padding: '12px 20px',
             background: 'rgba(0, 0, 0, 0.5)',
             borderBottom: '1px solid var(--border-color)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px'
+            gap: '8px',
+            flexShrink: 0
           }}
         >
           <div
@@ -196,7 +202,9 @@ export const BadgesModal = ({ isOpen, onClose }) => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              fontSize: '12.5px'
+              fontSize: '12px',
+              flexWrap: 'wrap',
+              gap: '6px'
             }}
           >
             <span style={{ color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -229,7 +237,7 @@ export const BadgesModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Filter Pills */}
-          <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
             <button
               onClick={() => {
                 setFilter('all');
@@ -270,13 +278,15 @@ export const BadgesModal = ({ isOpen, onClose }) => {
 
         {/* Badges Grid */}
         <div
+          className="badges-grid-container"
           style={{
-            padding: '20px 22px',
+            padding: '16px 20px',
             overflowY: 'auto',
             flex: 1,
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-            gap: '14px'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+            gap: '14px',
+            alignItems: 'stretch'
           }}
         >
           {filteredBadges.map((badge) => {
@@ -287,6 +297,7 @@ export const BadgesModal = ({ isOpen, onClose }) => {
             return (
               <div
                 key={badge.id}
+                className="badge-cyber-card"
                 style={{
                   background: isUnlocked
                     ? 'linear-gradient(135deg, rgba(0, 255, 102, 0.05), rgba(0, 0, 0, 0.75))'
@@ -296,22 +307,23 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                   padding: '16px',
                   display: 'flex',
                   flexDirection: 'column',
+                  justifyContent: 'space-between',
                   gap: '12px',
                   position: 'relative',
-                  overflow: 'hidden',
+                  minHeight: '190px',
                   boxShadow: isUnlocked
                     ? `0 0 16px ${badge.color}22, inset 0 0 12px ${badge.color}11`
                     : 'none',
-                  opacity: isUnlocked ? 1 : 0.75,
+                  opacity: isUnlocked ? 1 : 0.85,
                   transition: 'all 0.2s ease'
                 }}
               >
                 {/* Top Row: Icon + Title + Status */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexShrink: 0 }}>
                   <div
                     style={{
-                      width: '46px',
-                      height: '46px',
+                      width: '44px',
+                      height: '44px',
                       borderRadius: '8px',
                       background: isUnlocked ? `${badge.color}18` : 'rgba(255, 255, 255, 0.03)',
                       border: `1.5px solid ${isUnlocked ? badge.color : 'rgba(255, 255, 255, 0.12)'}`,
@@ -323,7 +335,7 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                       flexShrink: 0
                     }}
                   >
-                    <IconComponent size={24} />
+                    <IconComponent size={22} />
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -334,7 +346,7 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                           textTransform: 'uppercase',
                           letterSpacing: '0.6px',
                           color: badge.color,
-                          fontWeight: 600
+                          fontWeight: 700
                         }}
                       >
                         {badge.tierName}
@@ -345,11 +357,13 @@ export const BadgesModal = ({ isOpen, onClose }) => {
 
                     <h4
                       style={{
-                        margin: '2px 0 0 0',
-                        fontSize: '15px',
-                        color: isUnlocked ? '#fff' : '#aaa',
+                        margin: '3px 0 0 0',
+                        fontSize: '14.5px',
+                        color: isUnlocked ? '#fff' : '#cbd5e1',
                         fontWeight: 700,
-                        fontFamily: 'var(--font-display)'
+                        fontFamily: 'var(--font-display)',
+                        letterSpacing: '0.4px',
+                        lineHeight: 1.3
                       }}
                     >
                       {badge.title}
@@ -357,7 +371,7 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                   </div>
 
                   {/* Status Pill */}
-                  <div>
+                  <div style={{ flexShrink: 0 }}>
                     {isUnlocked ? (
                       <span
                         className="cyber-badge badge-green"
@@ -366,7 +380,8 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                           padding: '3px 8px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px'
+                          gap: '4px',
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         <CheckCircle2 size={11} /> UNLOCKED
@@ -378,10 +393,11 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                           fontSize: '9.5px',
                           padding: '3px 8px',
                           color: 'var(--text-dim)',
-                          borderColor: 'rgba(255,255,255,0.1)',
+                          borderColor: 'rgba(255,255,255,0.12)',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px'
+                          gap: '4px',
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         <Lock size={11} /> LOCKED
@@ -395,8 +411,9 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                   style={{
                     margin: 0,
                     fontSize: '12.5px',
-                    color: isUnlocked ? '#d1d5db' : '#777',
-                    lineHeight: 1.45
+                    color: isUnlocked ? '#e2e8f0' : '#8899a6',
+                    lineHeight: 1.5,
+                    flex: 1
                   }}
                 >
                   {badge.description}
@@ -405,9 +422,10 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                 {/* Requirement & Progress Footer */}
                 <div
                   style={{
+                    flexShrink: 0,
                     marginTop: 'auto',
                     paddingTop: '10px',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '6px'
@@ -417,18 +435,23 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: '11px'
+                      alignItems: 'flex-start',
+                      gap: '8px',
+                      fontSize: '11px',
+                      lineHeight: 1.4
                     }}
                   >
-                    <span style={{ color: 'var(--text-dim)' }}>
-                      <strong>Requirement:</strong> {badge.requirement}
+                    <span style={{ color: isUnlocked ? '#cbd5e1' : '#94a3b8', flex: 1 }}>
+                      <strong style={{ color: isUnlocked ? badge.color : '#e2e8f0' }}>Requirement:</strong> {badge.requirement}
                     </span>
                     <span
                       style={{
                         color: isUnlocked ? badge.color : 'var(--text-dim)',
                         fontFamily: 'var(--font-mono)',
-                        fontSize: '11px'
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
                       }}
                     >
                       {progress.current} / {progress.total}
@@ -439,9 +462,9 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                   <div
                     style={{
                       width: '100%',
-                      height: '4px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: '2px',
+                      height: '5px',
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      borderRadius: '3px',
                       overflow: 'hidden'
                     }}
                   >
@@ -450,6 +473,7 @@ export const BadgesModal = ({ isOpen, onClose }) => {
                         width: `${progress.percent}%`,
                         height: '100%',
                         background: isUnlocked ? badge.color : 'rgba(255, 255, 255, 0.25)',
+                        boxShadow: isUnlocked ? `0 0 8px ${badge.color}` : 'none',
                         transition: 'width 0.3s ease'
                       }}
                     />
@@ -463,17 +487,20 @@ export const BadgesModal = ({ isOpen, onClose }) => {
         {/* Modal Footer */}
         <div
           style={{
-            padding: '12px 22px',
+            padding: '12px 20px',
             background: 'rgba(0, 0, 0, 0.6)',
             borderTop: '1px solid var(--border-color)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             fontSize: '12px',
-            color: 'var(--text-dim)'
+            color: 'var(--text-dim)',
+            flexWrap: 'wrap',
+            gap: '10px',
+            flexShrink: 0
           }}
         >
-          <span>
+          <span style={{ flex: 1, minWidth: '220px' }}>
             💡 Complete mission trials in the <strong>Guided Missions</strong> tab to unlock remaining badges.
           </span>
           <button
