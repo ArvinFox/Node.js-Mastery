@@ -182,12 +182,28 @@ export const BADGES = [
     icon: 'HelpCircle',
     color: '#a855f7',
     description: 'Demonstrate infallible intuition predicting asynchronous microtask and macrotask execution orders.',
-    requirement: 'Solve at least 3 Event Loop Output Quizzes',
-    checkUnlocked: (completed, quizzes = []) => quizzes.length >= 3,
+    requirement: 'Solve at least 5 Output Prediction Quizzes',
+    checkUnlocked: (completed, quizzes = []) => quizzes.length >= 5,
     getProgress: (completed, quizzes = []) => ({
-      current: Math.min(quizzes.length, 3),
-      total: 3,
-      percent: Math.min(100, Math.round((quizzes.length / 3) * 100))
+      current: Math.min(quizzes.length, 5),
+      total: 5,
+      percent: Math.min(100, Math.round((quizzes.length / 5) * 100))
+    })
+  },
+  {
+    id: 'BADGE_QUIZ_GRANDMASTER',
+    title: 'Async Time Traveler',
+    tierName: 'Grandmaster',
+    category: 'Knowledge Mastery',
+    icon: 'Sparkles',
+    color: '#00f0ff',
+    description: 'Achieve 100% flawless prediction mastery across all 20 Node.js timeline puzzles.',
+    requirement: 'Solve all 20 Output Prediction Quizzes',
+    checkUnlocked: (completed, quizzes = []) => quizzes.length >= 20,
+    getProgress: (completed, quizzes = []) => ({
+      current: Math.min(quizzes.length, 20),
+      total: 20,
+      percent: Math.min(100, Math.round((quizzes.length / 20) * 100))
     })
   }
 ];
