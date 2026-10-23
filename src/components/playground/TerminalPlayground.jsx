@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { soundFx } from '../../services/soundFx';
 import { storage } from '../../services/storage';
+import { missionValidators } from './missionValidators';
 import confetti from 'canvas-confetti';
 import {
   Play,
@@ -13,8 +14,139 @@ import {
   Eye,
   Target,
   BrainCircuit,
-  Laptop
+  Laptop,
+  Loader2
 } from 'lucide-react';
+
+const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+
+// Browser-safe Node.js Polyfills for Sandbox Execution
+class MockBuffer {
+  constructor(arg) {
+    if (typeof arg === 'number') {
+      this.data = new Uint8Array(arg);
+    } else if (Array.isArray(arg) || arg instanceof Uint8Array) {
+      this.data = new Uint8Array(arg);
+    } else if (typeof arg === 'string') {
+      this.data = new TextEncoder().encode(arg);
+    } else {
+      this.data = new Uint8Array(0);
+    }
+    this.length = this.data.length;
+  }
+  static from(data, enc) {
+    if (typeof data === 'string') {
+      return new MockBuffer(new TextEncoder().encode(data));
+    }
+    if (Array.isArray(data) || data instanceof Uint8Array) {
+      return new MockBuffer(data);
+    }
+    return new MockBuffer(0);
+  }
+  static alloc(size, fill = 0) {
+    const b = new MockBuffer(size);
+    b.data.fill(fill);
+    return b;
+  }
+  readUInt16BE(offset = 0) {
+    return (this.data[offset] << 8) | this.data[offset + 1];
+  }
+  readUInt8(offset = 0) {
+    return this.data[offset];
+  }
+  toString(encoding = 'utf8', start = 0, end) {
+    const slice = this.data.subarray(start, end !== undefined ? end : this.data.length);
+    return new TextDecoder().decode(slice);
+  }
+  subarray(start, end) {
+    return new MockBuffer(this.data.subarray(start, end));
+  }
+  slice(start, end) {
+    return this.subarray(start, end);
+  }
+  write(str, offset = 0) {
+    const bytes = new TextEncoder().encode(str);
+    this.data.set(bytes, offset);
+    return bytes.length;
+  }
+}
+
+class MockAsyncLocalStorage {
+  constructor() {
+    this.currentStore = undefined;
+  }
+  run(store, callback, ...args) {
+    const prev = this.currentStore;
+    this.currentStore = store;
+    try {
+      return callback(...args);
+    } finally {
+      this.currentStore = prev;
+    }
+  }
+  getStore() {
+    return this.currentStore;
+  }
+}
+
+const mockRequire = (mod) => {
+  if (mod === 'node:async_hooks' || mod === 'async_hooks') {
+    return { AsyncLocalStorage: MockAsyncLocalStorage };
+  }
+  if (mod === 'node:buffer' || mod === 'buffer') {
+    return { Buffer: MockBuffer };
+  }
+  if (mod === 'node:events' || mod === 'events') {
+    return {
+      EventEmitter: class {
+        constructor() {
+          this._events = {};
+        }
+        on(evt, fn) {
+          (this._events[evt] = this._events[evt] || []).push(fn);
+          return this;
+        }
+        emit(evt, ...args) {
+          (this._events[evt] || []).forEach((fn) => fn(...args));
+          return true;
+        }
+        once(evt, fn) {
+          const wrapper = (...args) => {
+            this.removeListener(evt, wrapper);
+            fn(...args);
+          };
+          return this.on(evt, wrapper);
+        }
+        removeListener(evt, fn) {
+          if (this._events[evt]) {
+            this._events[evt] = this._events[evt].filter((f) => f !== fn);
+          }
+          return this;
+        }
+      }
+    };
+  }
+  return {};
+};
+
+const SafeSharedArrayBuffer =
+  typeof SharedArrayBuffer !== 'undefined' ? SharedArrayBuffer : ArrayBuffer;
+
+const SafeAtomics =
+  typeof Atomics !== 'undefined'
+    ? Atomics
+    : {
+        compareExchange: (arr, idx, exp, rep) => {
+          const old = arr[idx];
+          if (old === exp) arr[idx] = rep;
+          return old;
+        },
+        store: (arr, idx, val) => {
+          arr[idx] = val;
+          return val;
+        },
+        load: (arr, idx) => arr[idx]
+      };
 
 export const TerminalPlayground = ({ lesson, onComplete }) => {
   const trial = lesson.trial;
@@ -23,6 +155,7 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
   const [testResult, setTestResult] = useState(null);
   const [showSolution, setShowSolution] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
     setCode(storage.getSavedCode(lesson.id, trial.starterCode));
@@ -30,26 +163,36 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
     setTestResult(null);
     setShowSolution(false);
     setShowHint(false);
+    setIsRunning(false);
   }, [lesson]);
 
-  const handleRunCode = () => {
+  const handleRunCode = async () => {
+    if (isRunning) return;
+    setIsRunning(true);
     soundFx.playClick();
+
     const logs = [];
     const customConsole = {
       log: (...args) =>
         logs.push({
           type: 'log',
-          text: args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
+          text: args
+            .map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a)))
+            .join(' ')
         }),
       error: (...args) =>
         logs.push({
           type: 'error',
-          text: args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
+          text: args
+            .map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a)))
+            .join(' ')
         }),
       warn: (...args) =>
         logs.push({
           type: 'warn',
-          text: args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
+          text: args
+            .map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a)))
+            .join(' ')
         })
     };
 
@@ -70,33 +213,92 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
     };
 
     try {
-      const sandboxFn = new Function('console', 'process', code);
-      sandboxFn(customConsole, mockProcess);
+      const wrappedCode = `
+        ${code};
+        return {
+          detectRuntime: typeof detectRuntime !== 'undefined' ? detectRuntime : undefined,
+          parseArgs: typeof parseArgs !== 'undefined' ? parseArgs : undefined,
+          bustCacheAndRequire: typeof bustCacheAndRequire !== 'undefined' ? bustCacheAndRequire : undefined,
+          myPromisify: typeof myPromisify !== 'undefined' ? myPromisify : undefined,
+          runWithConcurrency: typeof runWithConcurrency !== 'undefined' ? runWithConcurrency : undefined,
+          TinyEventEmitter: typeof TinyEventEmitter !== 'undefined' ? TinyEventEmitter : undefined,
+          parseHeader: typeof parseHeader !== 'undefined' ? parseHeader : undefined,
+          countWordsInChunks: typeof countWordsInChunks !== 'undefined' ? countWordsInChunks : undefined,
+          parseRawHttpRequest: typeof parseRawHttpRequest !== 'undefined' ? parseRawHttpRequest : undefined,
+          MiniReactor: typeof MiniReactor !== 'undefined' ? MiniReactor : undefined,
+          getPredictedOrder: typeof getPredictedOrder !== 'undefined' ? getPredictedOrder : undefined,
+          safePump: typeof safePump !== 'undefined' ? safePump : undefined,
+          createIpcRouter: typeof createIpcRouter !== 'undefined' ? createIpcRouter : undefined,
+          safeDeepMerge: typeof safeDeepMerge !== 'undefined' ? safeDeepMerge : undefined,
+          CyberLock: typeof CyberLock !== 'undefined' ? CyberLock : undefined,
+          rollingDeploy: typeof rollingDeploy !== 'undefined' ? rollingDeploy : undefined,
+          MiniContext: typeof MiniContext !== 'undefined' ? MiniContext : undefined,
+          ObjectPool: typeof ObjectPool !== 'undefined' ? ObjectPool : undefined,
+          LeakingCache: typeof LeakingCache !== 'undefined' ? LeakingCache : undefined,
+          wrapNativeBinding: typeof wrapNativeBinding !== 'undefined' ? wrapNativeBinding : undefined,
+        };
+      `;
 
-      setOutput(logs);
+      const runner = new AsyncFunction(
+        'console',
+        'process',
+        'require',
+        'Buffer',
+        'SharedArrayBuffer',
+        'Atomics',
+        wrappedCode
+      );
 
-      let passed = false;
-      let msg = '';
+      const execPromise = runner(
+        customConsole,
+        mockProcess,
+        mockRequire,
+        MockBuffer,
+        SafeSharedArrayBuffer,
+        SafeAtomics
+      );
 
-      if (
-        code.includes('solution') ||
-        logs.some((l) => !l.text.includes('Error') && !l.text.includes('unknown') && l.text.length > 0)
-      ) {
-        passed = true;
-        msg = `✓ Verified successfully! ${trial.testAssertion}`;
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                'Execution timed out (5000ms limit). Check for infinite loops or unhandled promises.'
+              )
+            ),
+          5000
+        )
+      );
+
+      const scope = await Promise.race([execPromise, timeoutPromise]);
+      scope.Buffer = MockBuffer;
+      scope.SharedArrayBuffer = SafeSharedArrayBuffer;
+      scope.Atomics = SafeAtomics;
+
+      // Yield for any microtasks/timers
+      await new Promise((r) => setTimeout(r, 60));
+
+      setOutput([...logs]);
+
+      const validator = missionValidators[lesson.id];
+      let testOutcome;
+      if (typeof validator === 'function') {
+        testOutcome = await validator(scope, logs);
       } else {
-        passed = false;
-        msg = `✕ Incomplete or test failed. Expected: ${trial.testAssertion}`;
+        testOutcome = {
+          pass: false,
+          message: 'No automated validator configured for this mission.'
+        };
       }
 
-      setTestResult({ pass: passed, message: msg });
+      setTestResult(testOutcome);
 
-      if (passed) {
+      if (testOutcome.pass) {
         soundFx.playSuccess();
         storage.markLessonComplete(lesson.id);
         confetti({
-          particleCount: 50,
-          spread: 60,
+          particleCount: 60,
+          spread: 70,
           origin: { y: 0.8 },
           colors: ['#00ff66', '#00f0ff', '#ffb000']
         });
@@ -107,11 +309,12 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
     } catch (err) {
       soundFx.playError();
       logs.push({ type: 'error', text: `Runtime Exception: ${err.message}` });
-      setOutput(logs);
+      setOutput([...logs]);
       setTestResult({ pass: false, message: `✕ Exception thrown: ${err.message}` });
+    } finally {
+      setIsRunning(false);
+      storage.saveCode(lesson.id, code);
     }
-
-    storage.saveCode(lesson.id, code);
   };
 
   const handleResetCode = () => {
@@ -185,7 +388,7 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
               color: 'var(--neon-amber)'
             }}
           >
-            💡 <strong>Hint:</strong> Think about edge cases and ensure you handle asynchronous returns or return the structured format expected by the test!
+            💡 <strong>Hint:</strong> Make sure to implement the required logic without leaving placeholder TODOs. The test runner validates real functional execution and edge cases!
           </div>
         )}
       </div>
@@ -210,10 +413,33 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={handleRunCode} className="cyber-button-primary" style={{ padding: '6px 14px', fontSize: '12px' }}>
-              <Play size={14} /> RUN CODE & VERIFY
+            <button
+              onClick={handleRunCode}
+              disabled={isRunning}
+              className="cyber-button-primary"
+              style={{
+                padding: '6px 14px',
+                fontSize: '12px',
+                opacity: isRunning ? 0.7 : 1,
+                cursor: isRunning ? 'wait' : 'pointer'
+              }}
+            >
+              {isRunning ? (
+                <>
+                  <Loader2 size={14} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} /> VERIFYING...
+                </>
+              ) : (
+                <>
+                  <Play size={14} /> RUN CODE & VERIFY
+                </>
+              )}
             </button>
-            <button onClick={handleResetCode} className="cyber-button-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>
+            <button
+              onClick={handleResetCode}
+              disabled={isRunning}
+              className="cyber-button-secondary"
+              style={{ padding: '6px 12px', fontSize: '12px' }}
+            >
               <RotateCcw size={14} /> RESET
             </button>
           </div>
@@ -232,7 +458,7 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
               spellCheck={false}
               style={{
                 width: '100%',
-                minHeight: '260px',
+                minHeight: '280px',
                 background: 'var(--code-bg)',
                 color: '#a7f3d0',
                 fontFamily: 'var(--font-mono)',
@@ -257,7 +483,7 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
               )}
             </div>
 
-            <div style={{ flex: 1, minHeight: '200px', padding: '14px', overflowY: 'auto' }}>
+            <div style={{ flex: 1, minHeight: '220px', padding: '14px', overflowY: 'auto' }}>
               {output.length === 0 ? (
                 <div style={{ color: '#444', fontStyle: 'italic', fontSize: '12px' }}>
                   Click "RUN CODE & VERIFY" above to execute your solution in the browser...
@@ -282,18 +508,22 @@ export const TerminalPlayground = ({ lesson, onComplete }) => {
             {testResult && (
               <div
                 style={{
-                  padding: '10px 14px',
-                  background: testResult.pass ? 'rgba(0, 255, 102, 0.15)' : 'rgba(255, 0, 127, 0.15)',
+                  padding: '12px 14px',
+                  background: testResult.pass ? 'rgba(0, 255, 102, 0.12)' : 'rgba(255, 0, 127, 0.12)',
                   borderTop: `1px solid ${testResult.pass ? 'var(--neon-green)' : 'var(--neon-pink)'}`,
-                  fontSize: '12px',
+                  fontSize: '12.5px',
                   display: 'flex',
-                  alignItems: 'center',
+                  alignItems: 'flex-start',
                   gap: '8px',
                   color: testResult.pass ? 'var(--neon-green)' : 'var(--neon-pink)'
                 }}
               >
-                {testResult.pass ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                <span>{testResult.message}</span>
+                {testResult.pass ? (
+                  <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                ) : (
+                  <XCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                )}
+                <span style={{ lineHeight: 1.4 }}>{testResult.message}</span>
               </div>
             )}
           </div>

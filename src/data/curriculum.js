@@ -614,7 +614,7 @@ console.log('Words:', countWordsInChunks(mockChunks));`,
 
 const mockChunks = ["Hello wo", "rld this is a", " stream"];
 console.log('Words:', countWordsInChunks(mockChunks));`,
-      testAssertion: 'countWordsInChunks(["Hello wo", "rld this is a", " stream"]) must return 5.',
+      testAssertion: 'countWordsInChunks(["Hello wo", "rld this is a", " stream"]) must return 6.',
       firstPrinciplesQuestion: 'Why is fs.rename considered atomic on the same filesystem volume, but not across different mounted hard drives?'
     }
   },
@@ -1246,7 +1246,7 @@ als.run({ traceId: 'REQ_101' }, async () => {
     trial: {
       challengeTitle: 'Trial 17: Custom Context Propagator',
       description: 'Implement a miniature context runner `MiniContext` with `run(context, fn)` and `getContext()` using native AsyncLocalStorage.',
-      starterCode: `import { AsyncLocalStorage } from 'node:async_hooks';
+      starterCode: `const { AsyncLocalStorage } = require('node:async_hooks');
 
 class MiniContext {
   constructor() {
@@ -1259,7 +1259,7 @@ class MiniContext {
     // TODO: Return current store
   }
 }`,
-      solutionCode: `import { AsyncLocalStorage } from 'node:async_hooks';
+      solutionCode: `const { AsyncLocalStorage } = require('node:async_hooks');
 
 class MiniContext {
   constructor() {
