@@ -605,7 +605,8 @@ body.crt-enabled::after {
 .floating-cli-launcher {
   position: fixed;
   bottom: 20px;
-  right: 24px;
+  left: 24px;
+  right: auto;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -649,7 +650,8 @@ body.crt-enabled::after {
 .floating-terminal-window {
   position: fixed;
   bottom: 20px;
-  right: 24px;
+  left: 24px;
+  right: auto;
   width: min(92vw, 650px);
   max-height: 480px;
   z-index: 1001;
@@ -757,6 +759,16 @@ body.crt-enabled::after {
   }
   .terminal-workspace {
     padding: 12px;
+  }
+  .floating-cli-launcher {
+    left: 14px;
+    bottom: 14px;
+  }
+  .floating-terminal-window {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: 12px;
   }
 }
 
